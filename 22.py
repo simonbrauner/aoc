@@ -1,10 +1,11 @@
+from math import prod
 from dataclasses import dataclass
 from collections.abc import Callable
 from collections import defaultdict
 
 
 @dataclass
-class Step:
+class Cuboid:
     on: bool
     min_x: int
     max_x: int
@@ -12,6 +13,20 @@ class Step:
     max_y: int
     min_z: int
     max_z: int
+
+    def __hash__(self) -> int:
+        return hash(
+            (self.min_x, self.max_x, self.min_y, self.max_y, self.min_z, self.max_z)
+        )
+
+    def cube_count(self) -> int:
+        return prod(
+            [
+                self.max_x - self.min_x + 1,
+                self.max_y - self.min_y + 1,
+                self.max_z - self.min_z + 1,
+            ]
+        )
 
 
 def read_range(line: str, coordinate: str) -> tuple[int, int]:
@@ -21,7 +36,7 @@ def read_range(line: str, coordinate: str) -> tuple[int, int]:
     return int(left), int(right)
 
 
-def in_initialization_procedure(step: Step) -> bool:
+def in_initialization_procedure(step: Cuboid) -> bool:
     return all(
         [
             abs(x) <= 50
@@ -38,17 +53,14 @@ def in_initialization_procedure(step: Step) -> bool:
 
 
 def cubes_on_count(
-    steps: list[Step], step_filter: None | Callable[[Step], bool] = None
+    steps: list[Cuboid], step_filter: None | Callable[[Cuboid], bool] = None
 ) -> int:
-    cubes = defaultdict(bool)
+    on: set[Cuboid] = set()
 
     for step in filter(step_filter, steps):
-        for x in range(step.min_x, step.max_x + 1):
-            for y in range(step.min_y, step.max_y + 1):
-                for z in range(step.min_z, step.max_z + 1):
-                    cubes[(x, y, z)] = step.on
+        on.add(step)
 
-    return [x for x in cubes.values()].count(True)
+    return sum([x.cube_count() for x in on])
 
 
 with open("data.txt") as f:
@@ -60,7 +72,7 @@ with open("data.txt") as f:
         y = read_range(line, "y")
         z = read_range(line, "z")
         steps.append(
-            Step(line.split(" ")[0] == "on", x[0], x[1], y[0], y[1], z[0], z[1])
+            Cuboid(line.split(" ")[0] == "on", x[0], x[1], y[0], y[1], z[0], z[1])
         )
 
     print(cubes_on_count(steps, in_initialization_procedure))
