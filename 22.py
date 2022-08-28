@@ -75,11 +75,15 @@ def cubes_on_count(
     steps: list[Cuboid], step_filter: None | Callable[[Cuboid], bool] = None
 ) -> int:
     on: set[Cuboid] = set()
+    off: set[Cuboid] = set()
 
     for step in filter(step_filter, steps):
-        on.add(step)
+        if step.on:
+            on.add(step)
+        else:
+            off.add(step)
 
-    return sum([x.cube_count() for x in on])
+    return sum([x.cube_count() for x in on]) - sum([x.cube_count() for x in off])
 
 
 with open("data.txt") as f:
