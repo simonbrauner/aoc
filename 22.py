@@ -1,3 +1,4 @@
+from __future__ import annotations
 from math import prod
 from dataclasses import dataclass
 from collections.abc import Callable
@@ -28,12 +29,30 @@ class Cuboid:
             ]
         )
 
+    def overlaps(self, other: Cuboid) -> bool:
+        return (
+            points_overlap(self.min_x, self.max_x, other.min_x, other.max_x)
+            or points_overlap(self.min_y, self.max_y, other.min_y, other.max_y)
+            or points_overlap(self.min_z, self.max_z, other.min_z, other.max_z)
+        )
+
 
 def read_range(line: str, coordinate: str) -> tuple[int, int]:
     split = line.split(f"{coordinate}=")[1].split(",")[0]
     left, right = split.split("..")
 
     return int(left), int(right)
+
+
+def points_overlap(
+    first_min: int, first_max: int, second_min: int, second_max: int
+) -> bool:
+    return (
+        first_min <= second_min <= first_max
+        or first_min <= second_max <= first_max
+        or second_min <= first_min <= second_max
+        or second_min <= first_max <= second_max
+    )
 
 
 def in_initialization_procedure(step: Cuboid) -> bool:
